@@ -1,22 +1,34 @@
-from handlers import *
+from handlers_fuck import handle_messages, start, help, error
 from telegram.ext import (Application, CommandHandler, MessageHandler, filters)
+from telegram import BotCommand, Update
+from dotenv import load_dotenv
+import os
 
-token_of_bot = '7651345538:AAEF75crnIbaBQUBppqom1fWQeKNJBaiN8U'
+
+load_dotenv()
+
+token = os.getenv("token")
+token_of_bot = token
+
+async def set_bot_commands(app):
+    commands = [
+        BotCommand('start', "Начать работу"),
+        BotCommand('help', "Справка по командам"),
+    ]
+    await app.bot.set_my_commands(commands)
 
 def main():
     app = Application.builder().token(token_of_bot).read_timeout(10).build()  # создание приложения бота
+    app.post_init = set_bot_commands
 
-    # регистрируем обработчик команд
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
 
-    # регистрация обработчика текстовых сообщений 
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, list_examples))
+    app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_messages))
+    
 
-    # регистрация обработчика ошибок 
     app.add_error_handler(error)
 
-    # запуск бота
     print('Бот запущен!')
     app.run_polling()
 
